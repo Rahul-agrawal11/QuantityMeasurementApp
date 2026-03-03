@@ -1,8 +1,23 @@
 package com.apps.quantitymeasurement;
 
 /**
- * QuantityMeasurementAppUC5 UC4: Extended Units UC5: Add Conversion Support
- */
+ * QuantityMeasurementApp UC6 Addition Operations Between Length Measurements
+ * <p>This use case extends UCS by introducing addition operations between length measurements.
+ * The Quantity Length API can add two measurements of potentially different units (but same
+ * category-length) and return the result as per the unit of the first operand.</p>
+ * 
+ * <p>Examples:
+ * <ul>
+ * <li>Adding 1 foot and 12 inches yields 2 feet (based on the unit of the first operand)</li>
+ * <li>Measurements must belong to the same category (length) but can have different units</li>
+ * <li>Result is returned as per the unit of the first operand</li>
+ * </ul>
+ * </p>
+ * @author Developer
+ * @version 1.0
+ * @since UC6
+*/
+
 public class QuantityMeasurementApp {
 
 	// ================= UC4 METHODS =================
