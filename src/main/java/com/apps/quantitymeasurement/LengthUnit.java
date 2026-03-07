@@ -36,4 +36,13 @@ public enum LengthUnit {
 		double convertedValue = baseValue / this.getConversionFactor();
 		return Math.round(convertedValue * 100.0) / 100.0;
 	}
+	
+	public static void main(String[] args) {
+		double yard = 1.0;
+		double inches = LengthUnit.YARDS.convertToBaseUnit(yard);
+		System.out.println(yard + " yard is equal to " + inches + " inches"); 
+		
+		double feet = LengthUnit.FEET.convertFromBaseUnit(inches);
+		System.out.println(inches + " inches are equal to " + feet + " feet");
+	}
 }
