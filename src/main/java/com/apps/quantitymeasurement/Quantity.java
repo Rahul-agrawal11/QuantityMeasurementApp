@@ -1,19 +1,17 @@
 /**
- * Represents a quantity with a numeric value and a unit of measurement.
- *
- * In UC12, the Quantity class has been enhanced to include additional operations
- * such as subtraction and division.
- * 1. Subtraction and division, along with improved error handling for incompatible 
- * units and division by zero scenarios.
- * 2. The equals method has been overridden to allow for meaningful comparisons between 
- * Quantity objects based on their converted values in base units.
- * 3. The toString method has also been overridden to provide a clear string representation
- * of the Quantity object.
- * 
- * This class encapsulates a numeric value along with an associated measurable unit,
- * allowing for flexible representation of measurements across different unit types.
- *
- */
+* In UC13, the Quantity class has been further enhanced to ensure DRY principles by
+* introducing the following:
+* 1. The private method validateArithmeticOperands to centralize 
+*    validation logic for arithmetic operations.
+* 2. Additionally, an internal enum ArithmeticOperation has been added to 
+*    represent the type of arithmetic operation being performed,
+* 3. The performArithmetic method has been added to execute the specified 
+*    arithmetic operation on the base unit values of the quantities involved. 
+*    
+* The performArithmetic method now handles addition, subtraction, and division 
+* operations in a unified manner, reducing code duplication and improving readability.
+**/
+
 
 package com.apps.quantitymeasurement;
 
@@ -113,15 +111,15 @@ public class Quantity<U extends IMeasurable> {
 		if (targetUnit == null) {
 			throw new IllegalArgumentException("Target unit cannot be null.");
 		}
-		double baseValue = this.convertToBaseUnit(this.value);
+		double baseValue = this.unit.convertToBaseUnit(this.value);
 		
-		double convertedValue = baseValue / targetUnit.getConversionFactor();
+		double convertedValue = targetUnit.convertFromBaseUnit(baseValue);
 		
-		return convertedValue;
+		return round(convertedValue);
 	}
 	
 	private double convertToBaseUnit(double value) {
-	    return value * this.unit.getConversionFactor();
+	    return this.unit.convertToBaseUnit(value);
 	}
 	
 	/**
@@ -132,6 +130,7 @@ public class Quantity<U extends IMeasurable> {
 	 */
 	
 	public Quantity<U> add(Quantity<U> other) {
+		unit.validateOperationSupport("addition");
 		validateArithmeticOperands(other, this.unit, true);
 
         double baseResult = performBaseArithmetic(other, ArithmeticOperation.ADD);
@@ -149,7 +148,7 @@ public class Quantity<U extends IMeasurable> {
 	 */
 	
 	public Quantity<U> add(Quantity<U> other, U targetUnit) {
-		
+		unit.validateOperationSupport("addition");
 		validateArithmeticOperands(other, targetUnit, true);
 		
 		double baseResult = performBaseArithmetic(other, ArithmeticOperation.ADD);
@@ -164,6 +163,7 @@ public class Quantity<U extends IMeasurable> {
 	 * 
 	 */
 	public Quantity<U> subtract(Quantity<U> other) {
+		unit.validateOperationSupport("subtraction");
 		validateArithmeticOperands(other, this.unit, true);
 		
 		double baseResult = performBaseArithmetic(other, ArithmeticOperation.SUBTRACT);
@@ -177,6 +177,7 @@ public class Quantity<U extends IMeasurable> {
 	 * 
 	 */
 	public Quantity<U> subtract(Quantity<U> other, U targetUnit) {
+		unit.validateOperationSupport("subtraction");
 		validateArithmeticOperands(other, targetUnit, true);
 		double baseResult = performBaseArithmetic(other, ArithmeticOperation.SUBTRACT);
 		double converted = targetUnit.convertFromBaseUnit(baseResult);
@@ -189,6 +190,7 @@ public class Quantity<U extends IMeasurable> {
 	 * 
 	 */
 	public double divide(Quantity<U> other) {
+		unit.validateOperationSupport("division");
 		validateArithmeticOperands(other, this.unit, true);
 		return performBaseArithmetic(other, ArithmeticOperation.DIVIDE);
 	}

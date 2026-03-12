@@ -248,14 +248,27 @@ public class QuantityMeasurementApp {
 //    		 demonstrateDivision(new Quantity<>(10.0, LengthUnit.FEET), new Quantity<>(5.0, LengthUnit.KILOGRAM));
     	} catch (IllegalArgumentException e) {
     		System.out.println(e.getMessage());
-    	}
-    			
-		Quantity<VolumeUnit> oneLitre =
-	            new Quantity<>(1.0, VolumeUnit.LITRE);
+    	}	    
+	    
+	    System.out.println("===Temperature Demonstration ===");
+		
+		// Equality Demonstration
+		Quantity<TemperatureUnit> temp1 = new Quantity<>(0.0, TemperatureUnit.CELSIUS);
+        Quantity<TemperatureUnit> temp2 = new Quantity<>(32.0, TemperatureUnit.FAHRENHEIT);
 
-	    Quantity<VolumeUnit> equivalentGallon =
-	            new Quantity<>(0.264172, VolumeUnit.GALLON);
-	    System.out.println(equivalentGallon.convertTo(VolumeUnit.LITRE)); // 1.0
-	    System.out.println(oneLitre.equals(equivalentGallon)); // false
+        System.out.println("0°C equals 32°F: " + temp1.equals(temp2));
+		
+		// Conversion Demonstration
+        Quantity<TemperatureUnit> celsius = new Quantity<>(100.0, TemperatureUnit.CELSIUS);
+        double fahrenheit = celsius.convertTo(TemperatureUnit.FAHRENHEIT);
+
+        System.out.println("100°C = " + fahrenheit + "°F");
+		
+		// Unsupported Operation Demonstration
+        try {
+            celsius.add(new Quantity<>(50.0, TemperatureUnit.CELSIUS));
+        } catch (UnsupportedOperationException e) {
+            System.out.println("Cannot add absolute temperatures: " + e.getMessage());
+        }
 	}
 }
