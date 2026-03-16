@@ -71,9 +71,9 @@ public class QuantityMeasurementDatabaseRepository implements IQuantityMeasureme
 	@Override
 	public List<QuantityMeasurementEntity> getAllMeasurements() {
 		List<QuantityMeasurementEntity> list = new ArrayList<>();
-		try (Connection conn = connectionPool.getConnection();
-				PreparedStatement ps = conn.prepareStatement(SELECT_ALL_SQL);
-				ResultSet rs = ps.executeQuery()) {
+		Connection conn = connectionPool.getConnection();
+
+		try (PreparedStatement ps = conn.prepareStatement(SELECT_ALL_SQL); ResultSet rs = ps.executeQuery()) {
 
 			while (rs.next()) {
 				QuantityMeasurementEntity entity = new QuantityMeasurementEntity();
@@ -94,6 +94,8 @@ public class QuantityMeasurementDatabaseRepository implements IQuantityMeasureme
 			}
 		} catch (SQLException e) {
 			throw DatabaseException.queryFailed("SELECT * FROM quantity_measurement_entity", e);
+		} finally {
+			connectionPool.releaseConnection(conn);
 		}
 		logger.info("Loaded " + list.size() + " entities from DB");
 		return list;
@@ -109,4 +111,5 @@ public class QuantityMeasurementDatabaseRepository implements IQuantityMeasureme
 			throw DatabaseException.queryFailed("DELETE FROM quantity_measurement_entity", e);
 		}
 	}
+
 }

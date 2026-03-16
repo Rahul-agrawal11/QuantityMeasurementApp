@@ -5,124 +5,116 @@ import java.util.Properties;
 import java.util.logging.Logger;
 
 /**
- * Singleton config loader.
- * Reads application.properties from classpath.
- * Supports environment-aware configuration via system properties / env vars.
+ * Singleton configuration loader. Reads application.properties from classpath.
  */
 public class ApplicationConfig {
 
-    private static final Logger logger =
-            Logger.getLogger(ApplicationConfig.class.getName());
+	private static final Logger logger = Logger.getLogger(ApplicationConfig.class.getName());
 
-    private static ApplicationConfig instance;
-    private Properties properties;
-    private Environment environment;
+	private static ApplicationConfig instance;
 
-    // ── Enums ─────────────────────────────────────────────────────────────────
+	private Properties properties;
 
-    public enum Environment {
-        DEVELOPMENT, TESTING, PRODUCTION
-    }
+	// ── Config Keys ─────────────────────────────────────────────
 
-    public enum ConfigKey {
-        REPOSITORY_TYPE         ("repository.type"),
-        DB_DRIVER_CLASS         ("db.driver"),
-        DB_URL                  ("db.url"),
-        DB_USERNAME             ("db.username"),
-        DB_PASSWORD             ("db.password"),
-        HIKARI_MAX_POOL_SIZE    ("db.hikari.maximum-pool-size"),
-        HIKARI_MIN_IDLE         ("db.hikari.minimum-idle"),
-        HIKARI_CONNECTION_TIMEOUT("db.hikari.connection-timeout"),
-        HIKARI_IDLE_TIMEOUT     ("db.hikari.idle-timeout"),
-        HIKARI_MAX_LIFETIME     ("db.hikari.max-lifetime"),
-        HIKARI_POOL_NAME        ("db.hikari.pool-name"),
-        HIKARI_CONNECTION_TEST_QUERY("db.hikari.connection-test-query");
+	public enum ConfigKey {
+		REPOSITORY_TYPE("repository.type"), DB_DRIVER("db.driver"), DB_URL("db.url"), DB_USERNAME("db.username"),
+		DB_PASSWORD("db.password"), DB_POOL_SIZE("db.pool.size");
 
-        private final String key;
+		private final String key;
 
-        ConfigKey(String key) { this.key = key; }
+		ConfigKey(String key) {
+			this.key = key;
+		}
 
-        public String getKey() { return key; }
-    }
+		public String getKey() {
+			return key;
+		}
+	}
 
-    // ── Constructor ───────────────────────────────────────────────────────────
+	// ── Constructor ─────────────────────────────────────────────
 
-    private ApplicationConfig() {
-        loadConfiguration();
-    }
+	private ApplicationConfig() {
+		loadConfiguration();
+	}
 
-    public static ApplicationConfig getInstance() {
-        if (instance == null) {
-            instance = new ApplicationConfig();
-        }
-        return instance;
-    }
+	public static ApplicationConfig getInstance() {
 
-    // ── Load ──────────────────────────────────────────────────────────────────
+		if (instance == null) {
+			instance = new ApplicationConfig();
+		}
 
-    private void loadConfiguration() {
-        properties = new Properties();
-        try {
-            // Detect environment from system property → env var → default
-            String env = System.getProperty("app.env");
-            if (env == null || env.isEmpty()) env = System.getenv("APP_ENV");
-            if (env == null || env.isEmpty()) env = "development";
+		return instance;
+	}
 
-            this.environment = Environment.valueOf(env.toUpperCase());
+	// ── Load Configuration ─────────────────────────────────────
 
-            String configFile = "application.properties";
-            InputStream input = ApplicationConfig.class
-                    .getClassLoader()
-                    .getResourceAsStream(configFile);
+	private void loadConfiguration() {
 
-            if (input != null) {
-                properties.load(input);
-                logger.info("Configuration loaded from: " + configFile
-                        + " | Environment: " + environment);
-            } else {
-                logger.warning("application.properties not found. Using defaults.");
-                loadDefaults();
-            }
-        } catch (Exception e) {
-            logger.severe("Error loading configuration: " + e.getMessage());
-            loadDefaults();
-        }
-    }
+		properties = new Properties();
 
-    private void loadDefaults() {
-        properties.setProperty(ConfigKey.REPOSITORY_TYPE.getKey(),        "cache");
-        properties.setProperty(ConfigKey.DB_DRIVER_CLASS.getKey(),        "org.postgresql.Driver");
-        properties.setProperty(ConfigKey.DB_URL.getKey(),
-                "jdbc:postgresql://localhost:5432/quantitymeasurementdb");
-        properties.setProperty(ConfigKey.DB_USERNAME.getKey(),            "postgres");
-        properties.setProperty(ConfigKey.DB_PASSWORD.getKey(),            "postgres");
-        properties.setProperty(ConfigKey.HIKARI_MAX_POOL_SIZE.getKey(),   "10");
-        properties.setProperty(ConfigKey.HIKARI_MIN_IDLE.getKey(),        "2");
-        properties.setProperty(ConfigKey.HIKARI_CONNECTION_TIMEOUT.getKey(), "30000");
-        properties.setProperty(ConfigKey.HIKARI_POOL_NAME.getKey(),
-                "QuantityMeasurementPool");
-        properties.setProperty(ConfigKey.HIKARI_CONNECTION_TEST_QUERY.getKey(), "SELECT 1");
-    }
+		try {
 
-    // ── Accessors ─────────────────────────────────────────────────────────────
+			String configFile = "application.properties";
 
-    public String get(ConfigKey key) {
-        return properties.getProperty(key.getKey());
-    }
+			InputStream input = ApplicationConfig.class.getClassLoader().getResourceAsStream(configFile);
 
-    public int getInt(ConfigKey key, int defaultValue) {
-        try { return Integer.parseInt(get(key)); }
-        catch (Exception e) { return defaultValue; }
-    }
+			if (input != null) {
 
-    public long getLong(ConfigKey key, long defaultValue) {
-        try { return Long.parseLong(get(key)); }
-        catch (Exception e) { return defaultValue; }
-    }
+				properties.load(input);
 
-    public Environment getEnvironment() { return environment; }
+				logger.info("Configuration loaded from " + configFile);
 
-    public boolean isDatabaseRepository() {
-        return "database".equalsIgnoreCase(get(ConfigKey.REPOSITORY_TYPE));
-    }
+			} else {
+
+				logger.warning("application.properties not found. Using defaults");
+
+				loadDefaults();
+			}
+
+		} catch (Exception e) {
+
+			logger.severe("Error loading configuration : " + e.getMessage());
+
+			loadDefaults();
+		}
+	}
+
+	// ── Default Configuration ──────────────────────────────────
+
+	private void loadDefaults() {
+
+		properties.setProperty(ConfigKey.REPOSITORY_TYPE.getKey(), "cache");
+
+		properties.setProperty(ConfigKey.DB_DRIVER.getKey(), "com.mysql.cj.jdbc.Driver");
+
+		properties.setProperty(ConfigKey.DB_URL.getKey(), "jdbc:mysql://localhost:3306/quantity_measurement_db");
+
+		properties.setProperty(ConfigKey.DB_USERNAME.getKey(), "root");
+
+		properties.setProperty(ConfigKey.DB_PASSWORD.getKey(), "root");
+
+		properties.setProperty(ConfigKey.DB_POOL_SIZE.getKey(), "5");
+	}
+
+	// ── Access Methods ─────────────────────────────────────────
+
+	public String get(ConfigKey key) {
+
+		return properties.getProperty(key.getKey());
+	}
+
+	public int getInt(ConfigKey key, int defaultValue) {
+
+		try {
+			return Integer.parseInt(get(key));
+		} catch (Exception e) {
+			return defaultValue;
+		}
+	}
+
+	public boolean isDatabaseRepository() {
+
+		return "database".equalsIgnoreCase(get(ConfigKey.REPOSITORY_TYPE));
+	}
 }

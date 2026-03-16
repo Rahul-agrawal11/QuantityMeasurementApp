@@ -22,7 +22,7 @@ public class QuantityDTO {
 	}
 
 	public enum WeightUnit implements IMeasurableUnit {
-		KILOGRAM, GRAM, POUND;
+		KILOGRAM, GRAM, POUND, MILIGRAM, TONNE;
 
 		@Override
 		public String getUnitName() {
