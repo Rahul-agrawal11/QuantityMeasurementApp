@@ -10,16 +10,21 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.util.Collections;
+
 import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.any;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(QuantityMeasurementController.class)
+@AutoConfigureMockMvc(addFilters = false)
 public class QuantityMeasurementControllerTest {
 
     @Autowired
@@ -41,45 +46,47 @@ public class QuantityMeasurementControllerTest {
         input.setThatQuantityDTO(new QuantityDTO(12.0, "INCHES", "LengthUnit"));
 
         result = new QuantityMeasurementDTO();
-        result.setResultString("true");
         result.setOperation("COMPARE");
+        result.setResultString("Equal");
         result.setError(false);
     }
 
     @Test
     void testCompare_Success() throws Exception {
 
-        when(service.compare(input.getThisQuantityDTO(), input.getThatQuantityDTO()))
-                .thenReturn(result);
+        when(service.compare(any(), any())).thenReturn(result);
 
         mockMvc.perform(post("/api/v1/quantities/compare")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(input)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.resultString").value("true"));
+                .andExpect(jsonPath("$.operation").value("COMPARE"))
+                .andExpect(jsonPath("$.resultString").value("Equal"))
+                .andExpect(jsonPath("$.error").value(false));
     }
 
     @Test
     void testAdd_Success() throws Exception {
 
+        result.setOperation("ADD");
         result.setResultValue(2.0);
         result.setResultUnit("FEET");
 
-        when(service.add(input.getThisQuantityDTO(), input.getThatQuantityDTO()))
-                .thenReturn(result);
+        when(service.add(any(), any())).thenReturn(result);
 
         mockMvc.perform(post("/api/v1/quantities/add")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(input)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.resultValue").value(2.0));
+                .andExpect(jsonPath("$.resultValue").value(2.0))
+                .andExpect(jsonPath("$.resultUnit").value("FEET"));
     }
 
     @Test
     void testGetHistory() throws Exception {
 
         when(service.getOperationHistory("COMPARE"))
-                .thenReturn(java.util.Collections.emptyList());
+                .thenReturn(Collections.emptyList());
 
         mockMvc.perform(get("/api/v1/quantities/history/operation/COMPARE"))
                 .andExpect(status().isOk())

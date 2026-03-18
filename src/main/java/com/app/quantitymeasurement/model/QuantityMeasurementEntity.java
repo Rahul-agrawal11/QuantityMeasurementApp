@@ -1,67 +1,79 @@
 package com.app.quantitymeasurement.model;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
+
 import java.time.LocalDateTime;
 
-@Entity // Marks this class as a JPA Entity
-@Table(name = "quantity_measurement_entity", indexes = { 
-		@Index(name = "idx_operation", columnList = "operation"),
+@Entity
+@Table(name = "quantity_measurement_entity", indexes = { @Index(name = "idx_operation", columnList = "operation"),
 		@Index(name = "idx_measurement_type", columnList = "this_measurement_type"),
 		@Index(name = "idx_created_at", columnList = "created_at") })
-@Data // Lombok annotation to generate getter, setter, toString, equals, and hashcode
-		// methods
-@NoArgsConstructor // Lombok annotation to generate a no-argument constructor
-@AllArgsConstructor // Lombok annotation to generate an all-argument constructor
-
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class QuantityMeasurementEntity {
+
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
+	// ------------------- INPUT (THIS) -------------------
 	@Column(name = "this_value", nullable = false)
-	public double thisValue;
+	private Double thisValue;
+
 	@Column(name = "this_unit", nullable = false)
-	public String thisUnit;
+	private String thisUnit;
+
 	@Column(name = "this_measurement_type", nullable = false)
-	public String thisMeasurementType;
-	@Column(name = "that_value", nullable = false)
-	public double thatValue;
-	@Column(name = "that_unit", nullable = false)
-	public String thatUnit;
-	@Column(name = "that_measurement_type", nullable = false)
-	public String thatMeasurementType;
+	private String thisMeasurementType;
 
-	// e.g., "COMPARE", "CONVER", "ADD", "SUBTRACT", "DIVIDE"
+	// ------------------- INPUT (THAT) -------------------
+	// Optional for some operations like CONVERT
+	@Column(name = "that_value")
+	private Double thatValue;
+
+	@Column(name = "that_unit")
+	private String thatUnit;
+
+	@Column(name = "that_measurement_type")
+	private String thatMeasurementType;
+
+	// ------------------- OPERATION -------------------
 	@Column(name = "operation", nullable = false)
-	public String operation;
+	private String operation;
+
+	// ------------------- RESULT -------------------
 	@Column(name = "result_value")
-	public double resultValue;
+	private Double resultValue;
+
 	@Column(name = "result_unit")
-	public String resultUnit;
+	private String resultUnit;
+
 	@Column(name = "result_measurement_type")
-	public String resultMeasurementType;
+	private String resultMeasurementType;
 
-	// For comparison results like "Equal" or "Not Equal"
+	// For comparison (EQUAL / NOT_EQUAL)
 	@Column(name = "result_string")
-	public String resultString;
+	private String resultString;
 
-	// Flag to indicate if an error occured during the operation
+	// ------------------- ERROR HANDLING -------------------
 	@Column(name = "is_error")
-	public boolean isError;
+	private boolean isError;
 
-	// For capturing any error message during operation
-	@Column(name = "error_message")
-	public String errorMessage;
+	// FIXED: prevent "value too long" DB error
+	@Column(name = "error_message", columnDefinition = "TEXT")
+	private String errorMessage;
 
+	// ------------------- AUDIT -------------------
 	@Column(name = "created_at", nullable = false, updatable = false)
 	private LocalDateTime createdAt;
 
 	@Column(name = "updated_at")
 	private LocalDateTime updatedAt;
 
+	// ------------------- LIFECYCLE -------------------
 	@PrePersist
 	protected void onCreate() {
 		createdAt = LocalDateTime.now();
@@ -81,11 +93,11 @@ public class QuantityMeasurementEntity {
 		this.id = id;
 	}
 
-	public double getThisValue() {
+	public Double getThisValue() {
 		return thisValue;
 	}
 
-	public void setThisValue(double thisValue) {
+	public void setThisValue(Double thisValue) {
 		this.thisValue = thisValue;
 	}
 
@@ -105,11 +117,11 @@ public class QuantityMeasurementEntity {
 		this.thisMeasurementType = thisMeasurementType;
 	}
 
-	public double getThatValue() {
+	public Double getThatValue() {
 		return thatValue;
 	}
 
-	public void setThatValue(double thatValue) {
+	public void setThatValue(Double thatValue) {
 		this.thatValue = thatValue;
 	}
 
@@ -137,11 +149,11 @@ public class QuantityMeasurementEntity {
 		this.operation = operation;
 	}
 
-	public double getResultValue() {
+	public Double getResultValue() {
 		return resultValue;
 	}
 
-	public void setResultValue(double resultValue) {
+	public void setResultValue(Double resultValue) {
 		this.resultValue = resultValue;
 	}
 
@@ -200,73 +212,118 @@ public class QuantityMeasurementEntity {
 	public void setUpdatedAt(LocalDateTime updatedAt) {
 		this.updatedAt = updatedAt;
 	}
-	
+
+	// ================= CONSTRUCTORS =================
 	public QuantityMeasurementEntity() {
 	}
 
-	public QuantityMeasurementEntity(double thisValue, String thisUnit, String thisMeasurementType, String operation,
-			double resultValue, String resultUnit, String resultMeasurementType) {
-
-		this.thisValue = thisValue;
-		this.thisUnit = thisUnit;
-		this.thisMeasurementType = thisMeasurementType;
-		this.operation = operation;
-
-		this.resultValue = resultValue;
-		this.resultUnit = resultUnit;
-		this.resultMeasurementType = resultMeasurementType;
-
-		this.isError = false;
+	private QuantityMeasurementEntity(Builder builder) {
+		this.thisValue = builder.thisValue;
+		this.thisUnit = builder.thisUnit;
+		this.thisMeasurementType = builder.thisMeasurementType;
+		this.thatValue = builder.thatValue;
+		this.thatUnit = builder.thatUnit;
+		this.thatMeasurementType = builder.thatMeasurementType;
+		this.operation = builder.operation;
+		this.resultString = builder.resultString;
+		this.resultValue = builder.resultValue;
+		this.resultUnit = builder.resultUnit;
+		this.resultMeasurementType = builder.resultMeasurementType;
+		this.errorMessage = builder.errorMessage;
+		this.isError = builder.isError;
 	}
 
-	public QuantityMeasurementEntity(double thisValue, String thisUnit, String thisMeasurementType, double thatValue,
-			String thatUnit, String thatMeasurementType, String operation, double resultValue, String resultUnit,
-			String resultMeasurementType) {
-
-		this.thisValue = thisValue;
-		this.thisUnit = thisUnit;
-		this.thisMeasurementType = thisMeasurementType;
-
-		this.thatValue = thatValue;
-		this.thatUnit = thatUnit;
-		this.thatMeasurementType = thatMeasurementType;
-
-		this.operation = operation;
-
-		this.resultValue = resultValue;
-		this.resultUnit = resultUnit;
-		this.resultMeasurementType = resultMeasurementType;
-
-		this.isError = false;
+	// ================= BUILDER =================
+	public static Builder builder() {
+		return new Builder();
 	}
 
-	public QuantityMeasurementEntity(double thisValue, String thisUnit, String thisMeasurementType, double thatValue,
-			String thatUnit, String thatMeasurementType, String operation, String resultString) {
+	public static class Builder {
+		private Double thisValue;
+		private String thisUnit;
+		private String thisMeasurementType;
 
-		this.thisValue = thisValue;
-		this.thisUnit = thisUnit;
-		this.thisMeasurementType = thisMeasurementType;
+		private Double thatValue;
+		private String thatUnit;
+		private String thatMeasurementType;
 
-		this.thatValue = thatValue;
-		this.thatUnit = thatUnit;
-		this.thatMeasurementType = thatMeasurementType;
+		private String operation;
 
-		this.operation = operation;
-		this.resultString = resultString;
+		private String resultString;
+		private Double resultValue;
+		private String resultUnit;
+		private String resultMeasurementType;
 
-		this.isError = false;
-	}
+		private String errorMessage;
+		private boolean isError;
 
-	public QuantityMeasurementEntity(double thisValue, String thisUnit, String thisMeasurementType, String operation,
-			String errorMessage) {
+		public Builder thisValue(Double val) {
+			this.thisValue = val;
+			return this;
+		}
 
-		this.thisValue = thisValue;
-		this.thisUnit = thisUnit;
-		this.thisMeasurementType = thisMeasurementType;
+		public Builder thisUnit(String unit) {
+			this.thisUnit = unit;
+			return this;
+		}
 
-		this.operation = operation;
-		this.errorMessage = errorMessage;
+		public Builder thisMeasurementType(String type) {
+			this.thisMeasurementType = type;
+			return this;
+		}
 
-		this.isError = true;
+		public Builder thatValue(Double val) {
+			this.thatValue = val;
+			return this;
+		}
+
+		public Builder thatUnit(String unit) {
+			this.thatUnit = unit;
+			return this;
+		}
+
+		public Builder thatMeasurementType(String type) {
+			this.thatMeasurementType = type;
+			return this;
+		}
+
+		public Builder operation(String op) {
+			this.operation = op;
+			return this;
+		}
+
+		public Builder resultString(String result) {
+			this.resultString = result;
+			return this;
+		}
+
+		public Builder resultValue(Double val) {
+			this.resultValue = val;
+			return this;
+		}
+
+		public Builder resultUnit(String unit) {
+			this.resultUnit = unit;
+			return this;
+		}
+
+		public Builder resultMeasurementType(String type) {
+			this.resultMeasurementType = type;
+			return this;
+		}
+
+		public Builder errorMessage(String msg) {
+			this.errorMessage = msg;
+			return this;
+		}
+
+		public Builder isError(boolean error) {
+			this.isError = error;
+			return this;
+		}
+
+		public QuantityMeasurementEntity build() {
+			return new QuantityMeasurementEntity(this);
+		}
 	}
 }
