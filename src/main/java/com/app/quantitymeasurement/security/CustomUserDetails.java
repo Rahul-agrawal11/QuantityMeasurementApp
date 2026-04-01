@@ -1,6 +1,7 @@
 package com.app.quantitymeasurement.security;
 
 import java.util.Collection;
+
 import java.util.Collections;
 
 import org.springframework.security.core.GrantedAuthority;
