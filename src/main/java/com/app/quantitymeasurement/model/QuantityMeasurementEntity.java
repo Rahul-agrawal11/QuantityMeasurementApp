@@ -218,15 +218,15 @@ public class QuantityMeasurementEntity {
 	}
 
 	private QuantityMeasurementEntity(Builder builder) {
-		this.thisValue = builder.thisValue;
+		this.thisValue = builder.thisValue != null ? builder.thisValue : 0.0;
 		this.thisUnit = builder.thisUnit;
 		this.thisMeasurementType = builder.thisMeasurementType;
-		this.thatValue = builder.thatValue;
+		this.thatValue = builder.thatValue != null ? builder.thatValue : 0.0;
 		this.thatUnit = builder.thatUnit;
 		this.thatMeasurementType = builder.thatMeasurementType;
 		this.operation = builder.operation;
 		this.resultString = builder.resultString;
-		this.resultValue = builder.resultValue;
+		this.resultValue = builder.resultValue != null ? builder.resultValue : 0.0;
 		this.resultUnit = builder.resultUnit;
 		this.resultMeasurementType = builder.resultMeasurementType;
 		this.errorMessage = builder.errorMessage;

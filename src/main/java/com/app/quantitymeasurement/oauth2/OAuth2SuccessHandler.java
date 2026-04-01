@@ -23,15 +23,33 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
 		this.jwtService = jwtService;
 	}
 
+//	@Override
+//	public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication auth)
+//			throws IOException, java.io.IOException {
+//
+//		OAuth2User user = (OAuth2User) auth.getPrincipal();
+//
+////		String username = user.getAttribute("email");
+////		String token = jwtService.generateToken(username);
+////
+////		response.getWriter().write(token);
+//		
+//		// ✅ FIXED - redirects browser to your frontend with token in URL
+//		String email = user.getAttribute("email");
+//		String token = jwtService.generateToken(email);
+//		String redirectUrl = "http://localhost:5500/index.html" + "?token=" + token + "&email=" + email;
+//		getRedirectStrategy().sendRedirect(request, response, redirectUrl);
+//	}
+
 	@Override
 	public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication auth)
 			throws IOException, java.io.IOException {
 
 		OAuth2User user = (OAuth2User) auth.getPrincipal();
+		String email = user.getAttribute("email");
+		String token = jwtService.generateToken(email);
 
-		String username = user.getAttribute("email");
-		String token = jwtService.generateToken(username);
-
-		response.getWriter().write(token);
+		// ✅ Redirect to frontend instead of writing token to response
+		response.sendRedirect("http://localhost:5501/index.html?token=" + token + "&email=" + email);
 	}
 }

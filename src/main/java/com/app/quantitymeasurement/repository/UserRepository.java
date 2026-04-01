@@ -9,5 +9,4 @@ import com.app.quantitymeasurement.model.AppUser;
 public interface UserRepository extends JpaRepository<AppUser, Long> {
 
 	Optional<AppUser> findByEmail(String email);
-
 }
