@@ -1,9 +1,7 @@
 package com.app.quantitymeasurement.dto.request;
 
 import jakarta.persistence.Column;
-import lombok.Data;
 
-@Data
 public class SignupRequest {
 	@Column(unique = true)
 	private String email;

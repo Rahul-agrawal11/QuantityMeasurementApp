@@ -62,7 +62,7 @@ public class QuantityMeasurementServiceImpl implements IQuantityMeasurementServi
 			boolean result = compare(m1, m2);
 
 			QuantityMeasurementEntity entity = buildEntity("COMPARE", thisDTO, thatDTO, null, null,
-					result ? "Equal" : "Not Equal", false, null);
+					result ? "EQUAL" : "NOT EQUAL", false, null);
 
 			return QuantityMeasurementDTO.from(repository.save(entity));
 
@@ -148,6 +148,9 @@ public class QuantityMeasurementServiceImpl implements IQuantityMeasurementServi
 	public QuantityMeasurementDTO divide(QuantityDTO thisDTO, QuantityDTO thatDTO) {
 
 		try {
+			if (thatDTO.getValue() == 0) {
+				throw new RuntimeException("Cannot divide by zero");
+			}
 			QuantityModel<IMeasurable> m1 = convertDtoToModel(thisDTO);
 			QuantityModel<IMeasurable> m2 = convertDtoToModel(thatDTO);
 
@@ -160,7 +163,8 @@ public class QuantityMeasurementServiceImpl implements IQuantityMeasurementServi
 			return QuantityMeasurementDTO.from(repository.save(entity));
 
 		} catch (Exception e) {
-			return saveError("DIVIDE", thisDTO, thatDTO, null, e);
+			logger.warning(e.getMessage());
+			throw new RuntimeException(e.getMessage()); // ✅ THROW instead of returning
 		}
 	}
 
@@ -196,10 +200,26 @@ public class QuantityMeasurementServiceImpl implements IQuantityMeasurementServi
 		return new QuantityModel<>(dto.getValue(), dto.getUnitInstance());
 	}
 
+//	private <U extends IMeasurable> boolean compare(QuantityModel<U> m1, QuantityModel<U> m2) {
+//		double v1 = m1.getUnit().convertToBaseUnit(m1.getValue());
+//		double v2 = m2.getUnit().convertToBaseUnit(m2.getValue());
+//		return Math.abs(v1 - v2) < 1e-5;
+//	}
+
 	private <U extends IMeasurable> boolean compare(QuantityModel<U> m1, QuantityModel<U> m2) {
+
+		// ✅ Compare using measurement type (NOT class)
+		if (!m1.getUnit().getMeasurementType().equals(m2.getUnit().getMeasurementType())) {
+			throw new RuntimeException("Cannot compare different measurement types");
+		}
+
+		// Convert both to base unit
 		double v1 = m1.getUnit().convertToBaseUnit(m1.getValue());
 		double v2 = m2.getUnit().convertToBaseUnit(m2.getValue());
-		return Math.abs(v1 - v2) < 1e-5;
+
+		System.out.println("DEBUG → v1: " + v1 + " | v2: " + v2); // 👈 add this
+
+		return Math.abs(v1 - v2) < 1e-4;
 	}
 
 	private <U extends IMeasurable> double convertTo(QuantityModel<U> source, QuantityModel<U> target) {
@@ -250,8 +270,12 @@ public class QuantityMeasurementServiceImpl implements IQuantityMeasurementServi
 		},
 		DIVIDE {
 			double apply(double a, double b) {
-				if (Math.abs(b) < 1e-5)
-					throw new ArithmeticException("Division by zero");
+
+				// STRONG CHECK (before anything else)
+				if (b == 0.0) {
+					throw new ArithmeticException("Cannot divide by zero");
+				}
+
 				return a / b;
 			}
 		};
@@ -273,6 +297,5 @@ public class QuantityMeasurementServiceImpl implements IQuantityMeasurementServi
 
 		return QuantityMeasurementDTO.from(repository.save(entity));
 	}
-	
-	
+
 }

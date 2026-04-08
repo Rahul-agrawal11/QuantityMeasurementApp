@@ -1,6 +1,7 @@
 package com.app.quantitymeasurement.model;
 
 import jakarta.persistence.*;
+
 import lombok.*;
 
 import java.time.LocalDateTime;
@@ -9,7 +10,6 @@ import java.time.LocalDateTime;
 @Table(name = "quantity_measurement_entity", indexes = { @Index(name = "idx_operation", columnList = "operation"),
 		@Index(name = "idx_measurement_type", columnList = "this_measurement_type"),
 		@Index(name = "idx_created_at", columnList = "created_at") })
-@Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
