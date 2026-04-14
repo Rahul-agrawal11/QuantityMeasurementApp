@@ -33,4 +33,4 @@ build/
 .vscode/
 
 ### EnvFile ###
-**/.env
+api-gateway/.env
