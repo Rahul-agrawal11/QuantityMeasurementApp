@@ -1,0 +1,16 @@
+server:
+  port: 8082
+
+spring:
+  application:
+    name: quantity-service
+
+  datasource:
+    url: jdbc:mysql://localhost:3306/quantity_db
+    username: root
+    password: "#Rahul@7505"
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
