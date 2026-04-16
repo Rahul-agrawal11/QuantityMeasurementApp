@@ -26,9 +26,16 @@ public class JwtFilter extends OncePerRequestFilter {
                                     FilterChain filterChain)
             throws ServletException, IOException {
 
+        // CRITICAL: Allow OPTIONS requests (CORS preflight) without authentication
+        if (request.getMethod().equals("OPTIONS")) {
+            response.setStatus(HttpServletResponse.SC_OK);
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         String path = request.getRequestURI();
 
-        // OPTIONAL: allow swagger or public endpoints
+        // Allow swagger or public endpoints
         if (path.contains("/swagger") || path.contains("/v3/api-docs")) {
             filterChain.doFilter(request, response);
             return;
@@ -38,6 +45,8 @@ public class JwtFilter extends OncePerRequestFilter {
 
         if (token == null || !token.startsWith("Bearer ")) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.setContentType("application/json");
+            response.getWriter().write("{\"error\": \"Missing or invalid Authorization header\"}");
             return;
         }
 
@@ -49,13 +58,15 @@ public class JwtFilter extends OncePerRequestFilter {
                     new UsernamePasswordAuthenticationToken(email, null, List.of());
 
             SecurityContextHolder.getContext().setAuthentication(auth);
-
             request.setAttribute("userEmail", email);
 
         } catch (Exception e) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.setContentType("application/json");
+            response.getWriter().write("{\"error\": \"Invalid token: " + e.getMessage() + "\"}");
             return;
         }
+
         filterChain.doFilter(request, response);
     }
 }

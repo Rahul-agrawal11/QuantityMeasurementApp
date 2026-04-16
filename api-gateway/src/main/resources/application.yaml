@@ -1,22 +1,56 @@
 server:
   port: 8080
 
+frontend:
+  url: http://localhost:3000
+
 spring:
   application:
     name: api-gateway
 
   cloud:
     gateway:
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowed-origins:
+              - "http://localhost:3000"
+              - "http://localhost:5173"
+            allowed-methods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - OPTIONS
+              - PATCH
+            allowed-headers:
+              - "*"
+            exposed-headers:
+              - "*"
+            allow-credentials: true
+            max-age: 3600
+
       routes:
         - id: user-service
-          uri: lb://user-service
+          uri: http://localhost:8081
           predicates:
             - Path=/users/**
+          filters:
+            - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
 
         - id: quantity-service
-          uri: lb://quantity-service
+          uri: http://localhost:8082
           predicates:
             - Path=/api/v1/quantities/**
+          filters:
+            - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
+
+        - id: quantity-service-history
+          uri: http://localhost:8082
+          predicates:
+            - Path=/api/v1/history/**
+          filters:
+            - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
 
   security:
     oauth2:
@@ -29,6 +63,7 @@ spring:
               - profile
               - email
             authorization-grant-type: authorization_code
+            redirect-uri: "http://localhost:8080/login/oauth2/code/google"  # ← ADD THIS
 
         provider:
           google:
@@ -39,4 +74,7 @@ eureka:
     service-url:
       defaultZone: http://localhost:8761/eureka
 
-#  http://localhost:8080/login/oauth2/code/google
+logging:
+  level:
+    org.springframework.cloud.gateway: DEBUG
+    org.springframework.web.cors: DEBUG
