@@ -1,0 +1,26 @@
+server:
+  port: ${PORT:8761}
+
+eureka:
+  client:
+    register-with-eureka: false
+    fetch-registry: false
+  server:
+    enable-self-preservation: false
+
+spring:
+  application:
+    name: eureka-server
+
+# NOTE: Eureka is optional on Railway.
+# Services use direct URLs via env vars instead of service discovery.
+# You can skip deploying this unless you need the Eureka dashboard.
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: always

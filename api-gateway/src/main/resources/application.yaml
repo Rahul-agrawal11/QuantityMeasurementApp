@@ -1,0 +1,88 @@
+server:
+  port: ${PORT:8080}
+
+frontend:
+  url: ${FRONTEND_URL}
+
+spring:
+  application:
+    name: api-gateway
+
+  cloud:
+    gateway:
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowed-origins:
+              - "${FRONTEND_URL}"
+            allowed-methods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - OPTIONS
+              - PATCH
+            allowed-headers:
+              - "*"
+            exposed-headers:
+              - "*"
+            allow-credentials: true
+            max-age: 3600
+
+      routes:
+        - id: user-service
+          uri: ${USER_SERVICE_URL}
+          predicates:
+            - Path=/users/**
+          filters:
+            - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
+
+        - id: quantity-service
+          uri: ${QUANTITY_SERVICE_URL}
+          predicates:
+            - Path=/api/v1/quantities/**
+          filters:
+            - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
+
+        - id: quantity-service-history
+          uri: ${QUANTITY_SERVICE_URL}
+          predicates:
+            - Path=/api/v1/history/**
+          filters:
+            - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
+
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${GOOGLE_CLIENT_ID}
+            client-secret: ${GOOGLE_CLIENT_SECRET}
+            scope:
+              - profile
+              - email
+            authorization-grant-type: authorization_code
+            redirect-uri: "${GATEWAY_BASE_URL}/login/oauth2/code/google"
+
+        provider:
+          google:
+            authorization-uri: https://accounts.google.com/o/oauth2/v2/auth?prompt=select_account
+
+# Eureka disabled — Railway uses direct URLs instead
+eureka:
+  client:
+    enabled: false
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: always
+
+logging:
+  level:
+    org.springframework.cloud.gateway: INFO
+    org.springframework.web.cors: INFO
