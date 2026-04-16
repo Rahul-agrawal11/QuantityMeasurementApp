@@ -1,27 +1,4 @@
-## Stage 1: Build
-#FROM eclipse-temurin:17-jdk-alpine AS builder
-#WORKDIR /app
-#
-#COPY .mvn/ .mvn/
-#COPY mvnw pom.xml ./
-#
-## ✅ THIS LINE IS REQUIRED
-#RUN chmod +x mvnw
-#
-## now it will work
-#RUN ./mvnw dependency:go-offline -q
-#
-#COPY src/ src/
-#RUN ./mvnw clean package -DskipTests -q
-#
-## Stage 2: Run
-#FROM eclipse-temurin:17-jre-alpine
-#WORKDIR /app
-#COPY --from=builder /app/target/*.jar app.jar
-#EXPOSE 8080
-#ENTRYPOINT ["java", "-jar", "app.jar"]
-
-# -------- Stage 1: Build --------
+# Stage 1: Build
 FROM eclipse-temurin:17-jdk-alpine AS builder
 
 WORKDIR /app
@@ -31,10 +8,10 @@ COPY mvnw .
 COPY .mvn .mvn
 COPY pom.xml .
 
-# Fix permissions + line endings (handles Windows issues)
+# ✅ Fix permissions and line endings (CRLF -> LF for Windows users)
 RUN chmod +x mvnw && sed -i 's/\r$//' mvnw
 
-# Download dependencies (better caching)
+# Download dependencies (cached layer)
 RUN ./mvnw dependency:go-offline -q
 
 # Copy source code
@@ -43,8 +20,7 @@ COPY src src
 # Build jar
 RUN ./mvnw clean package -DskipTests -q
 
-
-# -------- Stage 2: Run --------
+# Stage 2: Run
 FROM eclipse-temurin:17-jre-alpine
 
 WORKDIR /app
