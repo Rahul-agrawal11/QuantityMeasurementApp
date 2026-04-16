@@ -7,10 +7,10 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>com.quantitymeasure</groupId>
-        <artifactId>QuantityMeasurementApp</artifactId>
-        <version>0.0.1-SNAPSHOT</version>
-        <relativePath>../pom.xml</relativePath>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>3.2.5</version> <!-- or your version -->
+        <relativePath/>
     </parent>
 
     <groupId>com.apigateway</groupId>
