@@ -21,10 +21,41 @@
 #EXPOSE 8080
 #ENTRYPOINT ["java", "-jar", "app.jar"]
 
-FROM eclipse-temurin:21-jdk-alpine
+# -------- Stage 1: Build --------
+FROM eclipse-temurin:17-jdk-alpine AS builder
+
 WORKDIR /app
-COPY . .
-RUN apk add --no-cache maven
-RUN mvn clean package -DskipTests
-RUN cp target/*.jar app.jar
-ENTRYPOINT ["java","-jar","app.jar"]
+
+# Copy Maven wrapper + config
+COPY mvnw .
+COPY .mvn .mvn
+COPY pom.xml .
+
+# Fix permissions + line endings (handles Windows issues)
+RUN chmod +x mvnw && sed -i 's/\r$//' mvnw
+
+# Download dependencies (better caching)
+RUN ./mvnw dependency:go-offline -q
+
+# Copy source code
+COPY src src
+
+# Build jar
+RUN ./mvnw clean package -DskipTests -q
+
+
+# -------- Stage 2: Run --------
+FROM eclipse-temurin:17-jre-alpine
+
+WORKDIR /app
+
+# Copy built jar
+COPY --from=builder /app/target/*.jar app.jar
+
+# Railway provides PORT dynamically
+ENV PORT=8080
+
+EXPOSE 8080
+
+# Start application
+ENTRYPOINT ["java", "-jar", "app.jar"]
