@@ -5,9 +5,10 @@ WORKDIR /app
 COPY .mvn/ .mvn/
 COPY mvnw pom.xml ./
 
-# ✅ FIX: give execute permission
+# ✅ THIS LINE IS REQUIRED
 RUN chmod +x mvnw
 
+# now it will work
 RUN ./mvnw dependency:go-offline -q
 
 COPY src/ src/
